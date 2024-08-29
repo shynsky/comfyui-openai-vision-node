@@ -11,25 +11,25 @@ class OpenAIVisionNode:
         return {
             "required": {
                 "samples": ("LATENT",),
-                "vae": ("VAE",),
                 "prompt": ("STRING", {"multiline": True}),
                 "api_key": ("STRING", {"default": ""}),
             },
         }
     
     RETURN_TYPES = ("STRING",)
-    FUNCTION = "analyze_image"
+    FUNCTION = "analyze_latent"
     CATEGORY = "image/analysis"
 
-    def analyze_image(self, samples, vae, prompt, api_key):
-        # Decode the latent representation
-        decoded = vae.decode(samples["samples"])
-
-        # Convert the decoded tensor to a PIL Image
-        image = decoded.squeeze(0).permute(1, 2, 0)
-        image = (image * 255).clamp(0, 255).cpu().numpy().astype(np.uint8)
-        pil_image = Image.fromarray(image)
-
+    def analyze_latent(self, samples, prompt, api_key):
+        # Normalize and convert latent to image
+        latent = samples["samples"]
+        latent_image = latent.squeeze(0).permute(1, 2, 0)
+        latent_image = (latent_image - latent_image.min()) / (latent_image.max() - latent_image.min())
+        latent_image = (latent_image * 255).clamp(0, 255).cpu().numpy().astype(np.uint8)
+        
+        # Create a grayscale image from the first channel
+        pil_image = Image.fromarray(latent_image[:,:,0], mode='L')
+        
         # Convert the image to base64
         buffered = BytesIO()
         pil_image.save(buffered, format="PNG")
@@ -48,7 +48,7 @@ class OpenAIVisionNode:
                     "content": [
                         {
                             "type": "text",
-                            "text": prompt
+                            "text": prompt + " (Note: This is a latent representation, not a fully rendered image.)"
                         },
                         {
                             "type": "image_url",
@@ -74,5 +74,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "OpenAIVisionNode": "OpenAI Vision Analysis"
+    "OpenAIVisionNode": "OpenAI Vision Analysis (Latent)"
 }

@@ -20,8 +20,12 @@ class OpenAIVisionNode:
     CATEGORY = "image/analysis"
 
     def analyze_image(self, image, prompt, api_key):
-        # Convert the PyTorch tensor to a PIL Image
-        pil_image = Image.fromarray(image.squeeze().permute(1, 2, 0).byte().cpu().numpy())
+        # Convert the tensor to a PIL Image
+        if isinstance(image, torch.Tensor):
+            # Ensure the image is in the correct format (C, H, W) and scale to 0-255
+            image = (image.squeeze().clamp(0, 1) * 255).byte().cpu().permute(1, 2, 0).numpy()
+        
+        pil_image = Image.fromarray(image)
         
         # Convert the image to base64
         buffered = BytesIO()
@@ -34,7 +38,7 @@ class OpenAIVisionNode:
         }
 
         payload = {
-            "model": "gpt-4-vision-preview",
+            "model": "gpt-4o",
             "messages": [
                 {
                     "role": "user",

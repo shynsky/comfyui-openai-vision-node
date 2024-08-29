@@ -10,7 +10,8 @@ class OpenAIVisionNode:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "image": ("IMAGE",),
+                "samples": ("LATENT",),
+                "vae": ("VAE",),
                 "prompt": ("STRING", {"multiline": True}),
                 "api_key": ("STRING", {"default": ""}),
             },
@@ -20,51 +21,15 @@ class OpenAIVisionNode:
     FUNCTION = "analyze_image"
     CATEGORY = "image/analysis"
 
-    def analyze_image(self, image, prompt, api_key):
-        # Debug: Print image type and shape
-        print(f"Image type: {type(image)}")
-        if isinstance(image, (torch.Tensor, np.ndarray)):
-            print(f"Image shape: {image.shape}")
+    def analyze_image(self, samples, vae, prompt, api_key):
+        # Decode the latent representation
+        decoded = vae.decode(samples["samples"])
 
-        # Convert the input to a PIL Image
-        if isinstance(image, torch.Tensor):
-            # If it's a PyTorch tensor
-            if image.ndim == 4:
-                image = image.squeeze(0)  # Remove batch dimension if present
-            if image.shape[0] in [1, 3, 4]:  # If color channel is first
-                image = image.permute(1, 2, 0)
-            
-            image = image.float().cpu().numpy()
-            
-            if image.max() <= 1.0:
-                image = (image * 255).astype(np.uint8)
-            else:
-                image = image.astype(np.uint8)
-            
-            if image.shape[2] == 1:  # If it's grayscale
-                image = np.squeeze(image, axis=2)
-            elif image.shape[2] == 4:  # If it has an alpha channel
-                image = image[:, :, :3]  # Remove alpha channel
-        
-        elif isinstance(image, np.ndarray):
-            # If it's already a numpy array
-            if image.ndim == 4:
-                image = image.squeeze(0)  # Remove batch dimension if present
-            if image.shape[0] in [1, 3, 4]:  # If color channel is first
-                image = np.transpose(image, (1, 2, 0))
-            
-            if image.max() <= 1.0:
-                image = (image * 255).astype(np.uint8)
-            else:
-                image = image.astype(np.uint8)
-            
-            if image.shape[2] == 1:  # If it's grayscale
-                image = np.squeeze(image, axis=2)
-            elif image.shape[2] == 4:  # If it has an alpha channel
-                image = image[:, :, :3]  # Remove alpha channel
-
+        # Convert the decoded tensor to a PIL Image
+        image = decoded.squeeze(0).permute(1, 2, 0)
+        image = (image * 255).clamp(0, 255).cpu().numpy().astype(np.uint8)
         pil_image = Image.fromarray(image)
-        
+
         # Convert the image to base64
         buffered = BytesIO()
         pil_image.save(buffered, format="PNG")

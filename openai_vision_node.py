@@ -29,31 +29,25 @@ class OpenAIVisionNode:
                 raise ValueError("API key is required")
 
             # Debug: Print image shape and type
-            print(f"Image shape: {image.shape}, dtype: {image.dtype}")
+            print(f"Input image shape: {image.shape}, dtype: {image.dtype}")
 
-            # Convert the PyTorch tensor to a numpy array
-            image_np = image.cpu().numpy()
+            # Handle the image format from ComfyUI's "Load Image" node
+            if len(image.shape) == 4 and image.shape[0] == 1:
+                # Remove the batch dimension
+                image = image.squeeze(0)
+
+            # Ensure the image is in the format [height, width, channels]
+            if image.shape[2] != 3:
+                image = image.permute(1, 2, 0)
+
+            # Convert to numpy and ensure it's in the range 0-255
+            image_np = (image.cpu().numpy() * 255).astype(np.uint8)
 
             # Debug: Print numpy array shape and type
-            print(f"Numpy array shape: {image_np.shape}, dtype: {image_np.dtype}")
+            print(f"Processed numpy array shape: {image_np.shape}, dtype: {image_np.dtype}")
 
-            # Handle different image formats
-            if image_np.shape[0] == 1 and image_np.ndim == 3:
-                # Single channel image
-                image_np = np.squeeze(image_np)
-                if image_np.dtype == np.uint8:
-                    pil_image = Image.fromarray(image_np, mode='L')
-                else:
-                    pil_image = Image.fromarray((image_np * 255).astype(np.uint8), mode='L')
-            elif image_np.shape[0] == 3 and image_np.ndim == 3:
-                # RGB image
-                image_np = np.transpose(image_np, (1, 2, 0))
-                if image_np.dtype == np.uint8:
-                    pil_image = Image.fromarray(image_np, mode='RGB')
-                else:
-                    pil_image = Image.fromarray((image_np * 255).clamp(0, 255).astype(np.uint8), mode='RGB')
-            else:
-                raise ValueError(f"Unsupported image format: shape {image_np.shape}, dtype {image_np.dtype}")
+            # Convert to PIL Image
+            pil_image = Image.fromarray(image_np)
 
             # Debug: Print PIL Image size and mode
             print(f"PIL Image size: {pil_image.size}, mode: {pil_image.mode}")
@@ -68,7 +62,8 @@ class OpenAIVisionNode:
                 "Authorization": f"Bearer {api_key}"
             }
 
-            prompt = custom_prompt or "Describe the main fashion garment in this image, including its style, color, and notable features."
+            prompt = custom_prompt or "Describe in detail, main fashion garment in this image, including its style, color, and notable features.\
+            Example: A long, flowy floral print dress with a dark background and colorful flowers in shades of red, pink, purple, and green. High neckline with a small ruffle trim and a crisscross lace-up detail on the chest. Sheer, long sleeves with elastic cuffs and intricate crochet-like detailing along the shoulders. The waist is cinched with a matching fabric belt, creating a fitted look before the skirt flows into a tiered design. The overall look is elegant and romantic, with a bohemian flair."
 
             payload = {
                 "model": "gpt-4o",

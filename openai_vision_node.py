@@ -28,10 +28,35 @@ class OpenAIVisionNode:
             if not api_key:
                 raise ValueError("API key is required")
 
-            # Convert the PyTorch tensor to a PIL Image
-            image = image.squeeze().permute(1, 2, 0)
-            image = (image * 255).clamp(0, 255).cpu().numpy().astype(np.uint8)
-            pil_image = Image.fromarray(image)
+            # Debug: Print image shape and type
+            print(f"Image shape: {image.shape}, dtype: {image.dtype}")
+
+            # Convert the PyTorch tensor to a numpy array
+            image_np = image.cpu().numpy()
+
+            # Debug: Print numpy array shape and type
+            print(f"Numpy array shape: {image_np.shape}, dtype: {image_np.dtype}")
+
+            # Handle different image formats
+            if image_np.shape[0] == 1 and image_np.ndim == 3:
+                # Single channel image
+                image_np = np.squeeze(image_np)
+                if image_np.dtype == np.uint8:
+                    pil_image = Image.fromarray(image_np, mode='L')
+                else:
+                    pil_image = Image.fromarray((image_np * 255).astype(np.uint8), mode='L')
+            elif image_np.shape[0] == 3 and image_np.ndim == 3:
+                # RGB image
+                image_np = np.transpose(image_np, (1, 2, 0))
+                if image_np.dtype == np.uint8:
+                    pil_image = Image.fromarray(image_np, mode='RGB')
+                else:
+                    pil_image = Image.fromarray((image_np * 255).clamp(0, 255).astype(np.uint8), mode='RGB')
+            else:
+                raise ValueError(f"Unsupported image format: shape {image_np.shape}, dtype {image_np.dtype}")
+
+            # Debug: Print PIL Image size and mode
+            print(f"PIL Image size: {pil_image.size}, mode: {pil_image.mode}")
 
             # Convert the image to base64
             buffered = BytesIO()
@@ -46,7 +71,7 @@ class OpenAIVisionNode:
             prompt = custom_prompt or "Describe the main fashion garment in this image, including its style, color, and notable features."
 
             payload = {
-                "model": "gpt-4-vision-preview",
+                "model": "gpt-4o",
                 "messages": [
                     {
                         "role": "user",

@@ -1,6 +1,6 @@
-# ComfyUI OpenAI Vision Node
+# ComfyUI OpenAI Fashion Analysis Node
 
-This custom node for ComfyUI allows you to use OpenAI's GPT-4 Vision model to analyze images within your ComfyUI workflows.
+This custom node for ComfyUI allows you to use OpenAI's GPT-4 Vision model to analyze fashion garments in images within your ComfyUI workflows.
 
 ## Installation
 
@@ -22,11 +22,22 @@ pip install -r requirements.txt
 ## Usage
 
 1. After installation, restart ComfyUI or reload custom nodes.
-2. Look for the "OpenAI Vision Analysis" node in the node menu.
+2. Look for the "OpenAI Fashion Analysis" node in the node menu.
 3. Connect an image output to the "image" input of the node.
-4. Provide a text prompt describing what you want to analyze or ask about the image.
-5. Enter your OpenAI API key.
-6. Run your workflow to get the analysis result.
+4. Enter your OpenAI API key in the "api_key" field.
+5. (Optional) Customize the analysis prompt or adjust the maximum number of tokens for the response.
+6. Run your workflow to get the fashion analysis result.
+
+## Input Parameters
+
+- `image`: The input image to analyze (required)
+- `api_key`: Your OpenAI API key (required)
+- `custom_prompt`: A custom prompt for the analysis (optional, default provided)
+- `max_tokens`: Maximum number of tokens for the response (optional, default: 300)
+
+## Output
+
+The node outputs a string containing the fashion analysis of the main garment in the image.
 
 ## Note
 

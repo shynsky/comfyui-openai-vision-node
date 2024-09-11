@@ -5,5 +5,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "OpenAIVisionNode": "OpenAI Vision Analysis"
+    "OpenAIVisionNode": "OpenAI Fashion Analysis"
 }

@@ -10,8 +10,7 @@ class OpenAIVisionNode:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "samples": ("LATENT",),
-                "vae": ("VAE",),
+                "image": ("IMAGE",),
                 "prompt": ("STRING", {"multiline": True}),
                 "api_key": ("STRING", {"default": ""}),
             },
@@ -21,19 +20,13 @@ class OpenAIVisionNode:
     FUNCTION = "analyze_image"
     CATEGORY = "image/analysis"
 
-    def analyze_image(self, samples, vae, prompt, api_key):
+    def analyze_image(self, image, prompt, api_key):
         try:
-            # Debug: Print latent shape
-            print(f"Latent shape: {samples['samples'].shape}")
+            # Debug: Print image shape
+            print(f"Image shape: {image.shape}")
             
-            # Decode the latent representation
-            decoded = vae.decode(samples["samples"])
-            
-            # Debug: Print decoded shape
-            print(f"Decoded shape: {decoded.shape}")
-
-            # Convert the decoded tensor to a PIL Image
-            image = decoded.squeeze(0).permute(1, 2, 0)
+            # Convert the PyTorch tensor to a PIL Image
+            image = image.squeeze().permute(1, 2, 0)
             image = (image * 255).clamp(0, 255).cpu().numpy().astype(np.uint8)
             pil_image = Image.fromarray(image)
 

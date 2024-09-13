@@ -21,7 +21,7 @@ class OpenAIVisionNode:
     
     RETURN_TYPES = ("STRING",)
     FUNCTION = "analyze_fashion"
-    CATEGORY = "image/fashion_analysis"
+    CATEGORY = "mw"
 
     def analyze_fashion(self, image, api_key, custom_prompt=None, max_tokens=300):
         try:
@@ -62,8 +62,7 @@ class OpenAIVisionNode:
                 "Authorization": f"Bearer {api_key}"
             }
 
-            prompt = custom_prompt or "Describe in detail, main fashion garment in this image, including its style, color, and notable features.\
-            Example: A long, flowy floral print dress with a dark background and colorful flowers in shades of red, pink, purple, and green. High neckline with a small ruffle trim and a crisscross lace-up detail on the chest. Sheer, long sleeves with elastic cuffs and intricate crochet-like detailing along the shoulders. The waist is cinched with a matching fabric belt, creating a fitted look before the skirt flows into a tiered design. The overall look is elegant and romantic, with a bohemian flair."
+            prompt = custom_prompt or "Describe the main fashion garment in this image, including its style, color, and notable features."
 
             payload = {
                 "model": "gpt-4o",
@@ -100,9 +99,9 @@ class OpenAIVisionNode:
             return (f"Error in analyze_fashion: {str(e)}",)
 
 NODE_CLASS_MAPPINGS = {
-    "OpenAIVisionNode": OpenAIVisionNode
+    "openai-vlm": OpenAIVisionNode
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "OpenAIVisionNode": "OpenAI Fashion Analysis"
+    "openai-vlm": "OpenAI VLM"
 }

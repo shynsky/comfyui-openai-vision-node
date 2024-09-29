@@ -7,7 +7,7 @@ This custom node for ComfyUI allows you to use OpenAI's GPT-4 Vision model to an
 You can install this node directly through the ComfyUI Manager using the following Git URL:
 
 ```
-https://github.com/yourusername/comfyui-openai-vision-node
+https://github.com/shynsky/comfyui-openai-vision-node
 ```
 
 Alternatively, you can manually install it by cloning this repository into your ComfyUI custom nodes directory:
